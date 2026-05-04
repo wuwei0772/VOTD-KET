@@ -38,6 +38,16 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
   const fetchWord = useCallback(async (w: string): Promise<WordInfo | null> => {
     if (cache.current.has(w)) return cache.current.get(w)!
     try {
+      // Try pre-generated static file first (instant load)
+      const staticRes = await fetch(`/word-data/${stableHash(w)}.json`)
+      if (staticRes.ok) {
+        const data: WordInfo = await staticRes.json()
+        cache.current.set(w, data)
+        return data
+      }
+    } catch {}
+    try {
+      // Fall back to API
       const res = await fetch('/api/word-info', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },

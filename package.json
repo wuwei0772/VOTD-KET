@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate-images": "node scripts/generate-images.mjs"
+    "generate-images": "node scripts/generate-images.mjs",
+    "generate-word-data": "node scripts/generate-word-data.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.1",
