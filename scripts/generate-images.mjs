@@ -24,8 +24,10 @@ function stableHash(str) {
 }
 
 function styleWrap(word) {
-  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces. ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO CAPTIONS, NO LABELS anywhere in the image.`
+  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces.`
 }
+
+const NEGATIVE_PROMPT = 'text, words, letters, numbers, alphabet, writing, typography, font, watermark, caption, label, signature, title, heading, inscription, graffiti, sign'
 
 async function generateAndSave(word, attempt = 1) {
   const filename = `${stableHash(word)}.jpg`
@@ -39,6 +41,7 @@ async function generateAndSave(word, attempt = 1) {
     body: JSON.stringify({
       model: 'cogview-3-flash',
       prompt: styleWrap(word),
+      negative_prompt: NEGATIVE_PROMPT,
       size: '1440x720',
     }),
   })

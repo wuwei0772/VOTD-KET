@@ -3,8 +3,10 @@ import { NextRequest } from 'next/server'
 const cache = new Map<string, string>()
 
 function styleWrap(word: string): string {
-  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces. ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO CAPTIONS, NO LABELS anywhere in the image.`
+  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces.`
 }
+
+const NEGATIVE_PROMPT = 'text, words, letters, numbers, alphabet, writing, typography, font, watermark, caption, label, signature, title, heading, inscription, graffiti, sign'
 
 export async function POST(req: NextRequest) {
   const { prompt, seed } = await req.json()
@@ -22,6 +24,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       model: 'cogview-3-flash',
       prompt: styleWrap(prompt),
+      negative_prompt: NEGATIVE_PROMPT,
       size: '1440x720',
     }),
   })
