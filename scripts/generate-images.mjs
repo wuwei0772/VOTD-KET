@@ -23,11 +23,22 @@ function stableHash(str) {
   return Math.abs(h)
 }
 
-function styleWrap(word) {
-  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces.`
+function styleWrap(imagePrompt) {
+  return `Simple cartoon illustration: ${imagePrompt}. Flat vector style, colorful, friendly, minimalist, no text, no letters.`
 }
 
-const NEGATIVE_PROMPT = 'text, words, letters, numbers, alphabet, writing, typography, font, watermark, caption, label, signature, title, heading, inscription, graffiti, sign'
+const NEGATIVE_PROMPT = 'text, words, letters, numbers, alphabet, writing, typography, font, watermark, caption, label, signature, title, heading, inscription, graffiti, sign, banner'
+
+const DATA_DIR = path.join(__dirname, '../public/word-data')
+
+async function getImagePrompt(word) {
+  try {
+    const data = JSON.parse(await fs.readFile(path.join(DATA_DIR, `${stableHash(word)}.json`), 'utf8'))
+    if (data.imagePrompt && !/[一-鿿]/.test(data.imagePrompt)) return data.imagePrompt
+  } catch {}
+  // Fallback: describe visually without using the word itself
+  return `scene representing the concept of ${word.replace(/['"]/g, '')}`
+}
 
 async function generateAndSave(word, attempt = 1) {
   const filename = `${stableHash(word)}.jpg`
@@ -35,12 +46,14 @@ async function generateAndSave(word, attempt = 1) {
 
   try { await fs.access(filePath); process.stdout.write(`  skip: ${word}\n`); return true } catch {}
 
+  const imagePrompt = await getImagePrompt(word)
+
   const res = await fetch('https://open.bigmodel.cn/api/paas/v4/images/generations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'cogview-3-flash',
-      prompt: styleWrap(word),
+      prompt: styleWrap(imagePrompt),
       negative_prompt: NEGATIVE_PROMPT,
       size: '1440x720',
     }),
