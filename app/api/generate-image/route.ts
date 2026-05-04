@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 const cache = new Map<string, string>()
 
 function styleWrap(word: string): string {
-  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces, no text or letters.`
+  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces. ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO CAPTIONS, NO LABELS anywhere in the image.`
 }
 
 export async function POST(req: NextRequest) {

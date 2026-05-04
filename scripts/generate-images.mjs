@@ -24,7 +24,7 @@ function stableHash(str) {
 }
 
 function styleWrap(word) {
-  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces, no text or letters.`
+  return `Flat vector illustration of "${word}". Colorful, clean bold outlines, friendly cartoon style, minimalist shapes, no photorealism, no realistic human faces. ABSOLUTELY NO TEXT, NO LETTERS, NO WORDS, NO NUMBERS, NO CAPTIONS, NO LABELS anywhere in the image.`
 }
 
 async function generateAndSave(word, attempt = 1) {
