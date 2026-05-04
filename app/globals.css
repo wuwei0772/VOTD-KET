@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --bg: #F8F6F1;
+  --card: #FFFFFF;
+  --border: #EDEDEA;
+  --text: #1A1A2E;
+  --muted: #6E6E73;
+  --accent: #4F7FFF;
+  --accent-soft: #EEF2FF;
+  --label-bg: #F0F0EE;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
