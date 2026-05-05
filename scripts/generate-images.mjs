@@ -4,15 +4,15 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-const API_KEY = process.env.ZHIPUAI_API_KEY
+const API_KEY = process.env.SILICONFLOW_API_KEY
 if (!API_KEY) {
-  console.error('Missing ZHIPUAI_API_KEY env var')
+  console.error('Missing SILICONFLOW_API_KEY env var')
   process.exit(1)
 }
 
 const OUTPUT_DIR = path.join(__dirname, '../public/word-images')
 const CONCURRENCY = 1
-const BATCH_DELAY_MS = 2500
+const BATCH_DELAY_MS = 8000
 
 // Must match the component's stableHash
 function stableHash(str) {
@@ -48,14 +48,15 @@ async function generateAndSave(word, attempt = 1) {
 
   const imagePrompt = await getImagePrompt(word)
 
-  const res = await fetch('https://open.bigmodel.cn/api/paas/v4/images/generations', {
+  const res = await fetch('https://api.siliconflow.cn/v1/images/generations', {
     method: 'POST',
     headers: { Authorization: `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'cogview-3-flash',
+      model: 'Kwai-Kolors/Kolors',
       prompt: styleWrap(imagePrompt),
       negative_prompt: NEGATIVE_PROMPT,
-      size: '1440x720',
+      image_size: '1024x512',
+      num_inference_steps: 20,
     }),
   })
 
@@ -70,7 +71,7 @@ async function generateAndSave(word, attempt = 1) {
   }
 
   const data = await res.json()
-  const url = data.data?.[0]?.url
+  const url = data.images?.[0]?.url ?? data.data?.[0]?.url
   if (!url) {
     process.stdout.write(`  FAIL: ${word} (no URL in response)\n`)
     return false
