@@ -6,6 +6,16 @@ import { useRouter } from 'next/navigation'
 import { sendEmailCode, verifyEmailCode } from '@/lib/auth'
 import { isSupabaseConfigured } from '@/lib/supabase'
 
+function authErrorMessage(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : ''
+
+  if (message.toLowerCase().includes('email rate limit exceeded')) {
+    return '验证码邮件发送次数已达上限。当前测试邮件服务每小时最多发送 2 封，请稍后再试。'
+  }
+
+  return message || fallback
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -39,7 +49,7 @@ export default function LoginPage() {
     try {
       await sendCode()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '验证码发送失败')
+      setError(authErrorMessage(err, '验证码发送失败'))
     } finally {
       setLoading(false)
     }
@@ -53,7 +63,7 @@ export default function LoginPage() {
     try {
       await sendCode()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '验证码发送失败')
+      setError(authErrorMessage(err, '验证码发送失败'))
     } finally {
       setLoading(false)
     }
@@ -68,7 +78,7 @@ export default function LoginPage() {
       router.replace('/account')
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '验证码验证失败')
+      setError(authErrorMessage(err, '验证码验证失败'))
       setLoading(false)
     }
   }
