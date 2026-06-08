@@ -7,6 +7,7 @@ export default function BottomTabBar() {
   const pathname = usePathname()
   const isNotebook = pathname === '/notebook'
   const isStudy = pathname.startsWith('/notebook/study')
+  const isAccount = pathname === '/account' || pathname === '/login'
 
   return (
     <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
@@ -51,6 +52,20 @@ export default function BottomTabBar() {
           <path d="M8 21h8M12 17v4" />
         </svg>
         <span style={{ fontSize: '10px', fontWeight: isStudy ? 600 : 400 }}>学习</span>
+      </Link>
+      <Link
+        href="/account"
+        style={{
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', gap: '3px', padding: '8px 0 12px', textDecoration: 'none',
+          color: isAccount ? 'var(--accent)' : 'var(--muted)', transition: 'color 0.15s',
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isAccount ? '2.5' : '1.8'}>
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0" />
+        </svg>
+        <span style={{ fontSize: '10px', fontWeight: isAccount ? 600 : 400 }}>账户</span>
       </Link>
     </div>
   )

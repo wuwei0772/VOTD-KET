@@ -137,7 +137,7 @@ export default function StudyPage() {
       <div>
         <span
           style={{
-            display: 'inline-block', background: '#EEF2FF', color: '#4F7FFF',
+            display: 'inline-block', background: 'var(--dino-yellow-soft)', color: '#B45309',
             fontSize: '11px', fontWeight: 500, padding: '2px 10px', borderRadius: '999px',
           }}
         >释义</span>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { saveWord, removeWord, isWordSaved, type WordInfo } from '@/lib/notebook'
+import { getLearningProgress, saveLearningProgress } from '@/lib/progress'
 import BottomTabBar from '@/components/BottomTabBar'
 
 function stableHash(str: string): number {
@@ -23,17 +24,43 @@ interface Props {
 
 export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: Props) {
   const [index, setIndex] = useState(0)
-  const [wordInfo, setWordInfo] = useState<WordInfo | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [imgLoaded, setImgLoaded] = useState(false)
-  const [imgError, setImgError] = useState(false)
+  const [wordResult, setWordResult] = useState<{ word: string; data: WordInfo | null } | null>(null)
+  const [imageResult, setImageResult] = useState<{ word: string; status: 'loaded' | 'error' } | null>(null)
   const [speaking, setSpeaking] = useState(false)
   const [speakingEx, setSpeakingEx] = useState<number | null>(null)
-  const [saved, setSaved] = useState(false)
+  const [savedResult, setSavedResult] = useState<{ word: string; saved: boolean } | null>(null)
+  const [progressReady, setProgressReady] = useState(false)
   const cache = useRef(new Map<string, WordInfo>())
 
   const word = words[index]
   const progress = ((index + 1) / words.length) * 100
+  const wordInfo = wordResult?.word === word ? wordResult.data : null
+  const loading = wordResult?.word !== word
+  const imgLoaded = imageResult?.word === word && imageResult.status === 'loaded'
+  const imgError = imageResult?.word === word && imageResult.status === 'error'
+  const saved = savedResult?.word === word && savedResult.saved
+
+  useEffect(() => {
+    let isCurrent = true
+    getLearningProgress(unitId, lessonId)
+      .then((progress) => {
+        if (isCurrent && progress) {
+          setIndex(Math.min(progress.current_word_index, words.length - 1))
+        }
+      })
+      .finally(() => {
+        if (isCurrent) setProgressReady(true)
+      })
+    return () => { isCurrent = false }
+  }, [unitId, lessonId, words.length])
+
+  useEffect(() => {
+    if (!progressReady) return
+    const timeout = window.setTimeout(() => {
+      saveLearningProgress(unitId, lessonId, index, words.slice(0, index + 1)).catch(console.error)
+    }, 400)
+    return () => window.clearTimeout(timeout)
+  }, [index, lessonId, progressReady, unitId, words])
 
   const fetchWord = useCallback(async (w: string): Promise<WordInfo | null> => {
     if (cache.current.has(w)) return cache.current.get(w)!
@@ -64,22 +91,12 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
 
   useEffect(() => {
     let isCurrent = true
-    setImgLoaded(false)
-    setImgError(false)
-    const cached = cache.current.get(word)
-    if (cached) {
-      setWordInfo(cached)
-      setLoading(false)
-    } else {
-      setWordInfo(null)
-      setLoading(true)
-      fetchWord(word).then((data) => {
-        if (!isCurrent) return
-        setWordInfo(data)
-        setLoading(false)
-      })
-    }
-    isWordSaved(word).then((s) => { if (isCurrent) setSaved(s) })
+    fetchWord(word).then((data) => {
+      if (isCurrent) setWordResult({ word, data })
+    })
+    isWordSaved(word).then((saved) => {
+      if (isCurrent) setSavedResult({ word, saved })
+    })
     return () => { isCurrent = false }
   }, [word, fetchWord])
 
@@ -113,10 +130,10 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
   const toggleSave = async () => {
     if (!wordInfo) return
     if (saved) {
-      setSaved(false)
+      setSavedResult({ word, saved: false })
       await removeWord(word)
     } else {
-      setSaved(true)
+      setSavedResult({ word, saved: true })
       await saveWord(word, wordInfo, unitId, lessonId)
     }
   }
@@ -218,7 +235,7 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
                 width: '40px',
                 height: '40px',
                 borderRadius: '8px',
-                background: saved ? '#EEF2FF' : 'var(--label-bg)',
+                background: saved ? 'var(--dino-yellow-soft)' : 'var(--label-bg)',
                 color: saved ? 'var(--accent)' : 'var(--muted)',
                 border: 'none',
                 cursor: wordInfo ? 'pointer' : 'not-allowed',
@@ -257,8 +274,8 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
               key={word}
               src={`/word-images/${stableHash(word)}.jpg`}
               alt={word}
-              onLoad={() => setImgLoaded(true)}
-              onError={() => { setImgError(true); setImgLoaded(false) }}
+              onLoad={() => setImageResult({ word, status: 'loaded' })}
+              onError={() => setImageResult({ word, status: 'error' })}
               style={{
                 width: '100%',
                 height: '100%',
@@ -366,8 +383,8 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
             <p className="text-sm" style={{ color: 'var(--muted)' }}>内容加载失败</p>
             <button
               onClick={() => {
-                setLoading(true)
-                fetchWord(word).then((d) => { setWordInfo(d); setLoading(false) })
+                setWordResult(null)
+                fetchWord(word).then((data) => setWordResult({ word, data }))
               }}
               className="mt-3 text-sm font-medium underline underline-offset-2"
               style={{ color: 'var(--accent)' }}
@@ -452,7 +469,7 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
 
 function Pill({ children, type }: { children: React.ReactNode; type?: 'meaning' | 'usage' | 'example' }) {
   const styles: Record<string, { background: string; color: string }> = {
-    meaning: { background: '#EEF2FF', color: '#4F7FFF' },
+    meaning: { background: 'var(--dino-yellow-soft)', color: '#B45309' },
     usage:   { background: '#F0FDF4', color: '#3D9970' },
     example: { background: '#FFF4EC', color: '#E07B39' },
   }

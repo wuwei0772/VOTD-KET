@@ -6,14 +6,19 @@
 }
 
 :root {
-  --bg: #F8F6F1;
+  --bg: #FFF9ED;
   --card: #FFFFFF;
-  --border: #EDEDEA;
-  --text: #1A1A2E;
-  --muted: #6E6E73;
-  --accent: #4F7FFF;
-  --accent-soft: #EEF2FF;
-  --label-bg: #F0F0EE;
+  --border: #F2DFC0;
+  --text: #3A2A1F;
+  --muted: #806E60;
+  --accent: #FF7900;
+  --accent-hover: #FF8C1A;
+  --accent-pressed: #E96800;
+  --accent-soft: #FFF0D7;
+  --dino-yellow: #FFD43B;
+  --dino-yellow-soft: #FFF7C2;
+  --label-bg: #FFF3DF;
+  --button-shadow: 0 3px 0 #D95F00, 0 7px 16px rgba(255, 121, 0, 0.18);
 }
 
 *, *::before, *::after {
@@ -28,4 +33,73 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a {
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease !important;
+}
+
+button:not(:disabled):hover,
+a:hover {
+  filter: brightness(1.025) saturate(1.04);
+}
+
+button:not(:disabled):active,
+a:active {
+  transform: translateY(2px) scale(0.985);
+  filter: brightness(0.98);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(255, 212, 59, 0.75);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed !important;
+  filter: grayscale(0.15);
+}
+
+button[style*="background: var(--accent)"],
+a[style*="background: var(--accent)"] {
+  box-shadow: var(--button-shadow);
+}
+
+button[style*="background: var(--accent)"]:hover,
+a[style*="background: var(--accent)"]:hover {
+  background: var(--accent-hover) !important;
+  box-shadow: 0 4px 0 #D95F00, 0 9px 20px rgba(255, 121, 0, 0.22);
+  transform: translateY(-1px);
+}
+
+button[style*="background: var(--accent)"]:active,
+a[style*="background: var(--accent)"]:active {
+  background: var(--accent-pressed) !important;
+  box-shadow: 0 1px 0 #C65300, 0 3px 8px rgba(255, 121, 0, 0.16);
+  transform: translateY(2px) scale(0.985);
+}
+
+input {
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+
+input:focus {
+  border-color: var(--accent) !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(255, 212, 59, 0.28);
 }

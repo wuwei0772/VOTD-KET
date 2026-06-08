@@ -2,7 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and copy the environment template:
+
+```bash
+npm ci
+cp .env.example .env.local
+```
+
+Then run the development server:
 
 ```bash
 npm run dev
@@ -17,6 +24,22 @@ bun dev
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+## Supabase Auth And Sync
+
+The app works in local-only mode without Supabase. When a user signs in, local
+saved words are merged into Supabase and future saved words and lesson progress
+are synced across devices.
+
+1. Create a Supabase project.
+2. Run `supabase/migrations/202606090001_auth_learning_records.sql` in the
+   Supabase SQL editor.
+3. Add the project URL and anon key to `.env.local`.
+4. In Supabase Auth email templates, configure the login email to show
+   `{{ .Token }}` so users can enter the email verification code in `/login`.
+
+Never expose the Supabase service-role key in this application. Row Level
+Security in the migration restricts every record to its authenticated owner.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

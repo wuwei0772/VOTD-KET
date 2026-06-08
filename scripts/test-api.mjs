@@ -1,12 +1,6 @@
 const API_KEY = process.argv[2]
 if (!API_KEY) { console.error('Usage: node scripts/test-api.mjs <api_key>'); process.exit(1) }
 
-function stableHash(str) {
-  let h = 0
-  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0
-  return Math.abs(h)
-}
-
 async function test(word) {
   const res = await fetch('https://open.bigmodel.cn/api/paas/v4/images/generations', {
     method: 'POST',

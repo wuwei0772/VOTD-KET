@@ -17,22 +17,10 @@ export default function HomePage() {
               KET Vocabulary Builder
             </p>
           </div>
-          <Link
-            href="/notebook"
-            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
-            style={{
-              color: 'var(--accent)',
-              background: 'var(--accent-soft)',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-            </svg>
-            笔记本
-          </Link>
+          <div className="flex gap-2">
+            <HeaderLink href="/notebook">笔记本</HeaderLink>
+            <HeaderLink href="/account">账户</HeaderLink>
+          </div>
         </header>
 
         <div className="grid grid-cols-2 gap-2">
@@ -75,5 +63,17 @@ export default function HomePage() {
 
       </div>
     </div>
+  )
+}
+
+function HeaderLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="text-sm font-medium transition-opacity hover:opacity-70"
+      style={{ color: 'var(--accent)', background: 'var(--accent-soft)', padding: '6px 10px', borderRadius: '8px' }}
+    >
+      {children}
+    </Link>
   )
 }
