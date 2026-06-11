@@ -5,14 +5,14 @@ import { usePathname } from 'next/navigation'
 
 export default function BottomTabBar() {
   const pathname = usePathname()
-  const isNotebook = pathname === '/notebook'
-  const isStudy = pathname.startsWith('/notebook/study')
+  const isHome = pathname === '/' || pathname.startsWith('/unit')
+  const isReview = pathname.startsWith('/review')
   const isAccount = pathname === '/account' || pathname === '/login'
 
   return (
     <div style={{ display: 'flex', borderTop: '1px solid var(--border)' }}>
       <Link
-        href="/notebook"
+        href="/"
         style={{
           flex: 1,
           display: 'flex',
@@ -22,36 +22,36 @@ export default function BottomTabBar() {
           gap: '3px',
           padding: '8px 0 12px',
           textDecoration: 'none',
-          color: isNotebook ? 'var(--accent)' : 'var(--muted)',
+          color: isHome ? 'var(--accent)' : 'var(--muted)',
           transition: 'color 0.15s',
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isNotebook ? '2.5' : '1.8'}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isHome ? '2.5' : '1.8'}>
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M9 22V12h6v10" />
+        </svg>
+        <span style={{ fontSize: '10px', fontWeight: isHome ? 600 : 400 }}>首页</span>
+      </Link>
+      <Link
+        href="/review"
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '3px',
+          padding: '8px 0 12px',
+          textDecoration: 'none',
+          color: isReview ? 'var(--accent)' : 'var(--muted)',
+          transition: 'color 0.15s',
+        }}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isReview ? '2.5' : '1.8'}>
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
         </svg>
-        <span style={{ fontSize: '10px', fontWeight: isNotebook ? 600 : 400 }}>笔记本</span>
-      </Link>
-      <Link
-        href="/notebook/study"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '3px',
-          padding: '8px 0 12px',
-          textDecoration: 'none',
-          color: isStudy ? 'var(--accent)' : 'var(--muted)',
-          transition: 'color 0.15s',
-        }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={isStudy ? '2.5' : '1.8'}>
-          <rect x="2" y="3" width="20" height="14" rx="2" />
-          <path d="M8 21h8M12 17v4" />
-        </svg>
-        <span style={{ fontSize: '10px', fontWeight: isStudy ? 600 : 400 }}>学习</span>
+        <span style={{ fontSize: '10px', fontWeight: isReview ? 600 : 400 }}>复习本</span>
       </Link>
       <Link
         href="/account"

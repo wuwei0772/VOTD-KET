@@ -5,21 +5,21 @@ import Link from 'next/link'
 import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser, signOut } from '@/lib/auth'
-import { getSavedWords } from '@/lib/notebook'
+import { getStats } from '@/lib/review'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import BottomTabBar from '@/components/BottomTabBar'
 
 export default function AccountPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [savedCount, setSavedCount] = useState(0)
+  const [masteredCount, setMasteredCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getCurrentUser(), getSavedWords()])
-      .then(([currentUser, words]) => {
+    Promise.all([getCurrentUser(), getStats()])
+      .then(([currentUser, stats]) => {
         setUser(currentUser)
-        setSavedCount(words.length)
+        setMasteredCount(stats.mastered)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -49,7 +49,7 @@ export default function AccountPage() {
               <p className="text-xs font-medium" style={{ color: 'var(--accent)' }}>已开启云同步</p>
               <p className="mt-1 font-semibold break-all" style={{ color: 'var(--text)' }}>{user.email}</p>
               <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>
-                当前云端笔记本共有 {savedCount} 个单词。
+                云端已记录你掌握了 {masteredCount} 个单词。
               </p>
               <button
                 onClick={handleSignOut}
@@ -63,7 +63,7 @@ export default function AccountPage() {
             <>
               <p className="font-semibold" style={{ color: 'var(--text)' }}>当前使用本地模式</p>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-                现有 {savedCount} 个收藏保存在此浏览器。登录后会自动合并到云端。
+                现有 {masteredCount} 个已掌握单词的记录保存在此浏览器。登录后会自动合并到云端。
               </p>
               <Link
                 href="/login"

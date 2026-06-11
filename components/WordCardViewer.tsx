@@ -2,17 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { saveWord, removeWord, isWordSaved, type WordInfo } from '@/lib/notebook'
+import { type WordInfo, getWordInfo, wordImageUrl } from '@/lib/word-data'
 import { getLearningProgress, saveLearningProgress } from '@/lib/progress'
+import { speakEnglish } from '@/lib/tts'
 import BottomTabBar from '@/components/BottomTabBar'
-
-function stableHash(str: string): number {
-  let h = 0
-  for (let i = 0; i < str.length; i++) {
-    h = Math.imul(31, h) + str.charCodeAt(i) | 0
-  }
-  return Math.abs(h)
-}
 
 interface Props {
   words: string[]
@@ -28,7 +21,6 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
   const [imageResult, setImageResult] = useState<{ word: string; status: 'loaded' | 'error' } | null>(null)
   const [speaking, setSpeaking] = useState(false)
   const [speakingEx, setSpeakingEx] = useState<number | null>(null)
-  const [savedResult, setSavedResult] = useState<{ word: string; saved: boolean } | null>(null)
   const [progressReady, setProgressReady] = useState(false)
   const cache = useRef(new Map<string, WordInfo>())
 
@@ -38,7 +30,6 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
   const loading = wordResult?.word !== word
   const imgLoaded = imageResult?.word === word && imageResult.status === 'loaded'
   const imgError = imageResult?.word === word && imageResult.status === 'error'
-  const saved = savedResult?.word === word && savedResult.saved
 
   useEffect(() => {
     let isCurrent = true
@@ -64,38 +55,15 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
 
   const fetchWord = useCallback(async (w: string): Promise<WordInfo | null> => {
     if (cache.current.has(w)) return cache.current.get(w)!
-    try {
-      // Try pre-generated static file first (instant load)
-      const staticRes = await fetch(`/word-data/${stableHash(w)}.json`)
-      if (staticRes.ok) {
-        const data: WordInfo = await staticRes.json()
-        cache.current.set(w, data)
-        return data
-      }
-    } catch {}
-    try {
-      // Fall back to API
-      const res = await fetch('/api/word-info', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ word: w }),
-      })
-      if (!res.ok) throw new Error()
-      const data: WordInfo = await res.json()
-      cache.current.set(w, data)
-      return data
-    } catch {
-      return null
-    }
+    const data = await getWordInfo(w)
+    if (data) cache.current.set(w, data)
+    return data
   }, [])
 
   useEffect(() => {
     let isCurrent = true
     fetchWord(word).then((data) => {
       if (isCurrent) setWordResult({ word, data })
-    })
-    isWordSaved(word).then((saved) => {
-      if (isCurrent) setSavedResult({ word, saved })
     })
     return () => { isCurrent = false }
   }, [word, fetchWord])
@@ -106,13 +74,7 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
   }, [index, words, fetchWord])
 
   const speakText = (text: string, onEnd?: () => void) => {
-    if (!('speechSynthesis' in window)) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = 'en-US'
-    u.rate = 0.85
-    if (onEnd) u.onend = onEnd
-    window.speechSynthesis.speak(u)
+    speakEnglish(text, { onEnd })
   }
 
   const speak = () => {
@@ -125,17 +87,6 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
     setSpeaking(false)
     setSpeakingEx(i)
     speakText(text, () => setSpeakingEx(null))
-  }
-
-  const toggleSave = async () => {
-    if (!wordInfo) return
-    if (saved) {
-      setSavedResult({ word, saved: false })
-      await removeWord(word)
-    } else {
-      setSavedResult({ word, saved: true })
-      await saveWord(word, wordInfo, unitId, lessonId)
-    }
   }
 
   return (
@@ -163,19 +114,6 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
               <span className="mx-1" style={{ color: 'var(--border)' }}>/</span>
               {words.length}
             </span>
-            <Link
-              href="/notebook"
-              className="flex items-center justify-center transition-opacity hover:opacity-60"
-              style={{
-                width: '30px', height: '30px', borderRadius: '7px',
-                background: 'var(--accent-soft)', color: 'var(--accent)',
-              }}
-              title="我的笔记本"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-              </svg>
-            </Link>
           </div>
         </div>
         {/* Progress bar */}
@@ -228,28 +166,6 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
               </svg>
             </button>
-            <button
-              onClick={toggleSave}
-              disabled={!wordInfo}
-              style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '8px',
-                background: saved ? 'var(--dino-yellow-soft)' : 'var(--label-bg)',
-                color: saved ? 'var(--accent)' : 'var(--muted)',
-                border: 'none',
-                cursor: wordInfo ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.15s',
-              }}
-              title={saved ? '从笔记本移除' : '保存到笔记本'}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -272,7 +188,7 @@ export default function WordCardViewer({ words, lessonNum, unitId, lessonId }: P
             // eslint-disable-next-line @next/next/no-img-element
             <img
               key={word}
-              src={`/word-images/${stableHash(word)}.jpg`}
+              src={wordImageUrl(word)}
               alt={word}
               onLoad={() => setImageResult({ word, status: 'loaded' })}
               onError={() => setImageResult({ word, status: 'error' })}
