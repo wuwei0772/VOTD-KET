@@ -8,6 +8,7 @@ import { getCurrentUser, signOut } from '@/lib/auth'
 import { getStats } from '@/lib/review'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import BottomTabBar from '@/components/BottomTabBar'
+import { MailIcon } from '@/components/HandDrawnIcons'
 
 export default function AccountPage() {
   const router = useRouter()
@@ -75,6 +76,24 @@ export default function AccountPage() {
             </>
           )}
         </section>
+
+        <Link
+          href="/feedback"
+          className="p-4 flex items-center gap-3"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px', textDecoration: 'none' }}
+        >
+          <span
+            className="flex items-center justify-center shrink-0"
+            style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--dino-yellow-soft)' }}
+          >
+            <MailIcon size={22} />
+          </span>
+          <span className="flex-1">
+            <span className="block text-sm font-semibold" style={{ color: 'var(--text)' }}>给 Dino 写信</span>
+            <span className="block text-xs mt-0.5" style={{ color: 'var(--muted)' }}>告诉 Dino 你的想法和心情</span>
+          </span>
+          <span style={{ color: 'var(--muted)' }}>›</span>
+        </Link>
 
         {!isSupabaseConfigured && (
           <p className="px-4 py-3 text-sm" style={{ borderRadius: '10px', background: '#FFF4EC', color: '#B45309' }}>
