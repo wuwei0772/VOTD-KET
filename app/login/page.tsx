@@ -10,7 +10,10 @@ function authErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : ''
 
   if (message.toLowerCase().includes('email rate limit exceeded')) {
-    return '验证码邮件发送次数已达上限。当前测试邮件服务每小时最多发送 2 封，请稍后再试。'
+    return '验证码邮件发送次数已达上限，请稍后再试。'
+  }
+  if (message.toLowerCase().includes('token has expired or is invalid')) {
+    return '验证码不正确或已过期，请重新输入或重新发送。'
   }
 
   return message || fallback
@@ -38,7 +41,7 @@ export default function LoginPage() {
     await sendEmailCode(email.trim())
     setCodeSent(true)
     setResendSeconds(60)
-    setMessage('验证码已发送，请检查邮箱。')
+    setMessage('验证码已发送，请查收邮箱（注意垃圾邮件箱）。')
   }
 
   const handleSendCode = async (event: FormEvent) => {
@@ -92,7 +95,7 @@ export default function LoginPage() {
           <p className="text-sm font-medium" style={{ color: 'var(--accent)' }}>VOTD 云同步</p>
           <h1 className="mt-1 text-2xl font-semibold" style={{ color: 'var(--text)' }}>邮箱验证码登录</h1>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--muted)' }}>
-            登录后，笔记本和课程学习位置会同步到你的所有设备。
+            登录后，复习进度和课程学习位置会同步到你的所有设备。
           </p>
         </div>
 
@@ -125,10 +128,11 @@ export default function LoginPage() {
               <input
                 inputMode="numeric"
                 autoComplete="one-time-code"
+                maxLength={6}
                 value={code}
                 onChange={(event) => setCode(event.target.value)}
                 required
-                placeholder="输入验证码"
+                placeholder="输入 6 位验证码"
                 className="h-11 px-3 text-sm outline-none"
                 style={{ border: '1px solid var(--border)', borderRadius: '9px', background: 'var(--bg)', color: 'var(--text)' }}
               />
