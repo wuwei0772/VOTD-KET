@@ -54,6 +54,62 @@ export function PaperPlaneIcon({ size = 56 }: { size?: number }) {
   )
 }
 
+export function OpenBookIcon({ size = 36 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ display: 'inline-block', verticalAlign: '-5px' }}
+      aria-hidden="true"
+    >
+      <path d="M4.2 5.2c2.9-.8 5.3-.4 7.8 1.2v12.2c-2.2-1.5-4.9-2-7.8-1.2z" fill="#FFF8E8" stroke="#E79D98" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M19.8 5.2c-2.9-.8-5.3-.4-7.8 1.2v12.2c2.2-1.5 4.9-2 7.8-1.2z" fill="#F8D7D2" stroke="#E79D98" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M12 6.4v12.2" stroke="#B98A5E" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M6.4 8.4c1.4-.2 2.5 0 3.5.5M6.3 11c1.2-.2 2.5 0 3.6.5M14.3 8.8c1-.5 2.2-.7 3.4-.5M14.3 11.5c1.2-.5 2.3-.6 3.6-.4" stroke="#B98A5E" strokeWidth="1" strokeLinecap="round" />
+      <path d="M9.3 18.2c1.1.3 1.9.7 2.7 1.4.8-.7 1.7-1.1 2.8-1.4" stroke="#FFD43B" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function GraduationCapIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ display: 'inline-block', verticalAlign: '-4px' }}
+      aria-hidden="true"
+    >
+      <path d="M3.4 8.3 12 4l8.6 4.3-8.6 4.2z" fill="#6D5848" stroke="#4E4036" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M7.5 10.6v3.9c2.2 1.7 6.8 1.7 9 0v-3.9L12 12.7z" fill="#8B6F55" stroke="#4E4036" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M18.8 9.1v5.1" stroke="#4E4036" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M18.8 14.2c-.8.8-1.2 1.6-1.2 2.4 0 .7.5 1.2 1.2 1.2s1.2-.5 1.2-1.2c0-.8-.4-1.6-1.2-2.4z" fill="#FFD43B" stroke="#E07B39" strokeWidth="1.1" />
+      <path d="M8.7 13.6c1.7.9 4.9 1 6.7.1" stroke="#F8D7D2" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function TrophyIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ display: 'inline-block', verticalAlign: '-3.5px' }}
+      aria-hidden="true"
+    >
+      <path d="M8 5.4h8v4.3c0 3-1.5 5.2-4 5.2s-4-2.2-4-5.2z" fill="#FFD43B" stroke="#E07B39" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M8 7.2H5.3c0 2.9 1.3 4.7 3.2 5.1M16 7.2h2.7c0 2.9-1.3 4.7-3.2 5.1" stroke="#E07B39" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 14.9v3.1M8.9 19h6.2M7.7 21h8.6" stroke="#B98A5E" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M10.2 7.7c.6-.2 1.3-.3 2-.2" stroke="#FFF8E8" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // Soft, low-contrast palette: harsh red-on-yellow reads as alarming to kids,
 // so faces use pale gold with warm-brown features instead.
 const MOOD_FACE_FILL = '#FFF1BE'

@@ -7,7 +7,7 @@ import { getTotalUniqueWordCount } from '@/lib/vocabulary'
 import Image from 'next/image'
 import BottomTabBar from '@/components/BottomTabBar'
 import WordLearnCard from '@/components/WordLearnCard'
-import { FlameIcon, ConfettiIcon } from '@/components/HandDrawnIcons'
+import { FlameIcon, ConfettiIcon, OpenBookIcon, TrophyIcon } from '@/components/HandDrawnIcons'
 
 function dueLabel(nextDue: string | null): string {
   if (!nextDue) return ''
@@ -199,7 +199,7 @@ export default function ReviewPage() {
               style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-                已掌握 · {mastered.length} 词 🏆
+                已掌握 · {mastered.length} 词 <TrophyIcon />
               </span>
               <svg
                 width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2"
@@ -236,7 +236,9 @@ export default function ReviewPage() {
             style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }}
             className="p-10 text-center"
           >
-            <p style={{ fontSize: '32px' }}>📖</p>
+            <div>
+              <OpenBookIcon size={44} />
+            </div>
             <p className="mt-3 text-sm font-medium" style={{ color: 'var(--text)' }}>复习本还是空的</p>
             <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>测验中答错的词会自动加入这里</p>
             <Link

@@ -1,14 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { getDueItems, promote, demote, type ReviewItem, MAX_BOX } from '@/lib/review'
-import { getRandomWords } from '@/lib/vocabulary'
+import { getAllUniqueWords, getRandomWords } from '@/lib/vocabulary'
 import { getWordInfo } from '@/lib/word-data'
 import { getQuizData } from '@/lib/quiz'
 import { speakEnglish } from '@/lib/tts'
 import BottomTabBar from '@/components/BottomTabBar'
 import WordLearnCard from '@/components/WordLearnCard'
+import { ConfettiIcon, GraduationCapIcon } from '@/components/HandDrawnIcons'
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -114,27 +115,94 @@ async function buildQuestion(item: ReviewItem): Promise<Question> {
 
 type Phase = 'loading' | 'question' | 'relearn' | 'summary' | 'empty'
 
-export default function ReviewSessionPage() {
+type SearchParams = Promise<{
+  testBox?: string | string[]
+  box?: string | string[]
+  stage?: string | string[]
+  word?: string | string[]
+  count?: string | string[]
+}>
+
+type TestBox = 2 | 3
+
+const DEFAULT_TEST_COUNT = 5
+const MAX_TEST_COUNT = 20
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+function parseTestBox(value: string | undefined): TestBox | null {
+  if (value === '2' || value === 'listening') return 2
+  if (value === '3' || value === 'cloze') return 3
+  return null
+}
+
+function parseTestCount(value: string | undefined): number {
+  const parsed = Number.parseInt(value ?? '', 10)
+  if (!Number.isFinite(parsed)) return DEFAULT_TEST_COUNT
+  return Math.min(MAX_TEST_COUNT, Math.max(1, parsed))
+}
+
+function buildTestQueue(testBox: TestBox | null, requestedWord: string, count: number): ReviewItem[] | null {
+  if (!testBox) return null
+
+  const allWords = getAllUniqueWords()
+  const selected = [
+    ...(requestedWord ? [requestedWord] : []),
+    ...allWords.filter((word) => word !== requestedWord),
+  ].slice(0, count)
+  const now = new Date().toISOString()
+
+  return selected.map((word) => ({
+    word,
+    status: 'learning',
+    box: testBox,
+    next_due: null,
+    wrong_count: 0,
+    unit_id: null,
+    lesson_id: null,
+    first_seen_at: now,
+    mastered_at: null,
+  }))
+}
+
+export default function ReviewSessionPage({ searchParams }: { searchParams: SearchParams }) {
+  const query = use(searchParams)
+  const testBox = parseTestBox(firstParam(query.testBox) ?? firstParam(query.box) ?? firstParam(query.stage))
+  const requestedWord = firstParam(query.word)?.trim() ?? ''
+  const testCount = parseTestCount(firstParam(query.count))
+  const testQueue = useMemo(
+    () => buildTestQueue(testBox, requestedWord, testCount),
+    [requestedWord, testBox, testCount],
+  )
+  const isTestMode = testQueue !== null
   const [queue, setQueue] = useState<ReviewItem[]>([])
   const [index, setIndex] = useState(0)
   // Question and answer state are keyed by queue position so they derive to
   // fresh values when the current item changes (no reset-in-effect needed).
   const [questionResult, setQuestionResult] = useState<{ key: number; q: Question } | null>(null)
   const [answer, setAnswer] = useState<{ key: number; chosen: number; graduated: boolean } | null>(null)
-  const [phase, setPhase] = useState<Phase>('loading')
+  const [phase, setPhase] = useState<Phase>(isTestMode ? 'question' : 'loading')
   const [speaking, setSpeaking] = useState(false)
   const [stats, setStats] = useState({ promoted: 0, graduatedCount: 0, demoted: 0 })
   const spokenFor = useRef<string | null>(null)
 
   useEffect(() => {
+    if (testQueue) return
+
+    let active = true
     getDueItems().then((items) => {
+      if (!active) return
       if (items.length === 0) { setPhase('empty'); return }
       setQueue(items)
       setPhase('question')
     })
-  }, [])
+    return () => { active = false }
+  }, [testQueue])
 
-  const item = queue[index]
+  const activeQueue = testQueue ?? queue
+  const item = activeQueue[index]
   const question = questionResult?.key === index ? questionResult.q : null
   const chosen = answer?.key === index ? answer.chosen : null
   const graduated = answer?.key === index ? answer.graduated : false
@@ -167,7 +235,7 @@ export default function ReviewSessionPage() {
     if (chosen !== null || !question || !item) return
     setAnswer({ key: index, chosen: i, graduated: false })
     if (question.options[i].correct) {
-      const updated = await promote(item.word)
+      const updated = isTestMode ? { ...item, status: item.box >= MAX_BOX ? 'mastered' : 'learning' } : await promote(item.word)
       const didGraduate = updated?.status === 'mastered'
       setAnswer({ key: index, chosen: i, graduated: didGraduate })
       setStats((s) => ({
@@ -176,7 +244,7 @@ export default function ReviewSessionPage() {
         graduatedCount: s.graduatedCount + (didGraduate ? 1 : 0),
       }))
     } else {
-      await demote(item.word)
+      if (!isTestMode) await demote(item.word)
       setStats((s) => ({ ...s, demoted: s.demoted + 1 }))
     }
   }
@@ -188,7 +256,7 @@ export default function ReviewSessionPage() {
       setPhase('relearn')
       return
     }
-    if (index < queue.length - 1) {
+    if (index < activeQueue.length - 1) {
       setIndex((i) => i + 1)
       setPhase('question')
     } else {
@@ -204,18 +272,18 @@ export default function ReviewSessionPage() {
       <div className="max-w-md mx-auto px-4 h-11 flex items-center justify-between">
         <Link href="/review" className="flex items-center gap-1.5 text-sm transition-opacity hover:opacity-60" style={{ color: 'var(--muted)' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M5 12l7-7M5 12l7 7" /></svg>
-          复习本
+          {isTestMode ? '退出测试' : '复习本'}
         </Link>
-        {queue.length > 0 && phase !== 'summary' && (
+        {activeQueue.length > 0 && phase !== 'summary' && (
           <span className="text-sm" style={{ color: 'var(--muted)' }}>
-            <span className="font-semibold" style={{ color: 'var(--text)' }}>{Math.min(index + 1, queue.length)}</span>
+            <span className="font-semibold" style={{ color: 'var(--text)' }}>{Math.min(index + 1, activeQueue.length)}</span>
             <span className="mx-1" style={{ color: 'var(--border)' }}>/</span>
-            {queue.length}
+            {activeQueue.length}
           </span>
         )}
       </div>
       <div style={{ height: '2px', background: 'var(--border)' }}>
-        <div style={{ height: '100%', width: `${queue.length > 0 ? (index / queue.length) * 100 : 0}%`, background: 'var(--accent)', transition: 'width 0.3s ease-out' }} />
+        <div style={{ height: '100%', width: `${activeQueue.length > 0 ? (index / activeQueue.length) * 100 : 0}%`, background: 'var(--accent)', transition: 'width 0.3s ease-out' }} />
       </div>
     </header>
   )
@@ -242,7 +310,9 @@ export default function ReviewSessionPage() {
   if (phase === 'empty') {
     return shell(
       <div className="flex-1 flex flex-col items-center justify-center gap-3 py-16">
-        <p style={{ fontSize: '40px' }}>🎉</p>
+        <div>
+          <ConfettiIcon size={46} />
+        </div>
         <p className="text-sm" style={{ color: 'var(--muted)' }}>今天没有待复习的词</p>
         <Link href="/review" className="text-sm font-medium underline underline-offset-2" style={{ color: 'var(--accent)' }}>
           返回复习本
@@ -255,13 +325,15 @@ export default function ReviewSessionPage() {
     const reviewed = stats.promoted + stats.graduatedCount + stats.demoted
     return shell(
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: '12px' }} className="px-6 py-8 text-center">
-        <p style={{ fontSize: '40px' }}>{stats.graduatedCount > 0 ? '🎓' : '✅'}</p>
+        <div>
+          <ConfettiIcon size={44} />
+        </div>
         <p className="text-2xl font-semibold mt-2" style={{ color: 'var(--text)' }}>今日复习完成</p>
         <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>共复习 {reviewed} 个词</p>
         <div className="mt-5 flex flex-col gap-2 text-sm text-left">
           {stats.graduatedCount > 0 && (
             <div className="flex justify-between px-4 py-2.5" style={{ background: '#F0FDF4', borderRadius: '8px' }}>
-              <span style={{ color: '#27500A' }}>🎓 毕业（已掌握）</span>
+              <span style={{ color: '#27500A' }}><GraduationCapIcon size={18} /> 毕业（已掌握）</span>
               <span className="font-semibold" style={{ color: '#27500A' }}>{stats.graduatedCount}</span>
             </div>
           )}
@@ -307,6 +379,11 @@ export default function ReviewSessionPage() {
   const locked = chosen !== null
   return shell(
     <>
+      {isTestMode && testBox && (
+        <p className="text-xs px-1" style={{ color: 'var(--muted)' }}>
+          测试模式 · 第 {testBox} 阶段 · 不保存进度
+        </p>
+      )}
       {!question ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div className="animate-pulse" style={{ height: '120px', borderRadius: '12px', background: 'var(--label-bg)' }} />
@@ -389,7 +466,7 @@ export default function ReviewSessionPage() {
             <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px' }} className="px-4 py-3 text-sm" >
               <span style={{ color: '#27500A', fontWeight: 500 }}>
                 {graduated
-                  ? `🎓 太棒了！「${question.word}」毕业，进入已掌握！`
+                  ? <><GraduationCapIcon size={18} /> 太棒了！「{question.word}」毕业，进入已掌握！</>
                   : `✓ 正确！升到第 ${Math.min(question.box + 1, MAX_BOX)} 盒，${question.box + 1 === 2 ? '3 天' : '7 天'}后再见`}
               </span>
             </div>
@@ -404,7 +481,7 @@ export default function ReviewSessionPage() {
       className="disabled:opacity-30"
       style={{ width: '100%', height: '44px', borderRadius: '10px', background: 'var(--accent)', color: '#fff', fontSize: '14px', fontWeight: 500, border: 'none', cursor: locked ? 'pointer' : 'not-allowed', transition: 'opacity 0.15s' }}
     >
-      {locked && !wasCorrect ? '重新认识这个词 →' : index < queue.length - 1 ? '下一题 →' : '查看总结 →'}
+      {locked && !wasCorrect ? '重新认识这个词 →' : index < activeQueue.length - 1 ? '下一题 →' : '查看总结 →'}
     </button>,
   )
 }
