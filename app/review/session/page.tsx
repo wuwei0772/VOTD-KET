@@ -37,7 +37,7 @@ interface Question {
 const KIND_LABEL: Record<QuestionKind, string> = {
   meaning: '选出正确的中文意思',
   listening: '听发音，选出你听到的词',
-  cloze: '选出能填入句子的词',
+  cloze: '选出能填入句子的词/短语',
 }
 
 function blankSentence(sentence: string, word: string): string | null {

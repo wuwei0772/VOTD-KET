@@ -38,6 +38,7 @@ async function fetchQuizData(word, attempt = 1) {
 
 Rules:
 - sentence: one short, natural English example sentence (A1–A2 level, at most 14 words) that contains "${word}" EXACTLY as written (same spelling, same form), so the student sees the word used in context
+- The sentence must still sound natural. Do not force awkward word order just to keep a phrase contiguous; choose a different natural sentence pattern instead.
 - synonym: one common English word or short phrase that can replace "${word}" in that exact sentence without changing the meaning; must be simpler or equally simple (A1–A2 level)
 - synonymNote: 用简体中文写一句简短解释（不超过20个字），说明为什么它可以替换
 - distractors: exactly 3 plausible but WRONG English words a student might confuse with "${word}" in this sentence; each note 用简体中文写（不超过20个字），说明为什么它不能替换
